@@ -25,6 +25,9 @@
           <router-link to="/reports" :class="{ active: $route.path === '/reports' }">
             Reports
           </router-link>
+          <router-link to="/restocking" :class="{ active: $route.path === '/restocking' }">
+            {{ t('nav.restocking') }}
+          </router-link>
         </nav>
         <LanguageSwitcher />
         <ProfileMenu
@@ -33,7 +36,8 @@
         />
       </div>
     </header>
-    <FilterBar />
+    <!-- Period/status filters do not apply to restocking, which is driven by a budget -->
+    <FilterBar v-if="$route.path !== '/restocking'" />
     <main class="main-content">
       <router-view />
     </main>

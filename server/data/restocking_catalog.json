@@ -1,0 +1,11 @@
+[
+  {"sku": "WDG-001", "category": "Mechanical", "unit_cost": 42.50, "quantity_on_hand": 120, "supplier_name": "Apex Industrial Supply"},
+  {"sku": "BRG-102", "category": "Mechanical", "unit_cost": 18.75, "quantity_on_hand": 90, "supplier_name": "Northwind Bearings"},
+  {"sku": "GSK-203", "category": "Mechanical", "unit_cost": 6.40, "quantity_on_hand": 210, "supplier_name": "Apex Industrial Supply"},
+  {"sku": "MTR-304", "category": "Actuators", "unit_cost": 389.00, "quantity_on_hand": 40, "supplier_name": "Torque Dynamics"},
+  {"sku": "FLT-405", "category": "Mechanical", "unit_cost": 11.20, "quantity_on_hand": 300, "supplier_name": "ClearFlow Filtration"},
+  {"sku": "VLV-506", "category": "Actuators", "unit_cost": 74.00, "quantity_on_hand": 60, "supplier_name": "Torque Dynamics"},
+  {"sku": "PSU-501", "category": "Power Supplies", "unit_cost": 31.50, "quantity_on_hand": 100, "supplier_name": "VoltEdge Electronics"},
+  {"sku": "SNR-420", "category": "Sensors", "unit_cost": 22.80, "quantity_on_hand": 80, "supplier_name": "SenseTech Components"},
+  {"sku": "CTL-330", "category": "Controllers", "unit_cost": 96.00, "quantity_on_hand": 40, "supplier_name": "VoltEdge Electronics"}
+]

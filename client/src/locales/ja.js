@@ -6,6 +6,7 @@ export default {
     orders: '注文',
     finance: '財務',
     demandForecast: '需要予測',
+    restocking: '補充発注',
     companyName: '触媒コンポーネンツ',
     subtitle: '在庫管理システム'
   },
@@ -126,6 +127,50 @@ export default {
       status: 'ステータス',
       expectedDelivery: '予定配達日',
       actualDelivery: '実際の配達日'
+    },
+    submitted: {
+      title: '発注済み注文',
+      description: 'サプライヤーに発注した補充注文',
+      empty: '発注済みの補充注文はまだありません',
+      leadTime: 'リードタイム',
+      leadTimeDays: '{days}日',
+      submittedDate: '発注日',
+      suppliers: 'サプライヤー'
+    }
+  },
+
+  // Restocking
+  restocking: {
+    title: '補充発注',
+    description: '予算を設定し、需要予測で不足が見込まれる品目を補充します',
+    budget: '利用可能な予算',
+    strategy: '優先基準',
+    strategyUrgency: '緊急度(不足数が多い順)',
+    strategyValue: '費用対効果(1ドルあたりの不足数)',
+    recommended: '推奨品目',
+    notAffordable: '現在の予算では購入できない品目',
+    nothingToRestock: '補充が必要な品目はありません',
+    nothingAffordable: '予算を増やすと推奨品目が表示されます',
+    selectedTotal: '注文合計',
+    budgetRemaining: '残り予算',
+    itemsSelected: '{total}件中{count}件を選択',
+    placeOrder: '発注する',
+    placing: '発注中...',
+    orderPlaced: '注文 {orderNumber} を発注しました。配達予定日 {date}({days}日後)。',
+    orderFailed: '発注に失敗しました',
+    loadFailed: '推奨品目の読み込みに失敗しました',
+    table: {
+      select: '選択',
+      item: '品目',
+      category: 'カテゴリ',
+      supplier: 'サプライヤー',
+      onHand: '在庫数',
+      onOrder: '発注済み',
+      forecast: '予測',
+      shortfall: '不足数',
+      unitCost: '単価',
+      cost: '費用',
+      leadTime: 'リードタイム'
     }
   },
 
