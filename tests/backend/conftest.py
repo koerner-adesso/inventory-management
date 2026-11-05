@@ -12,6 +12,15 @@ server_path = Path(__file__).parent.parent.parent / "server"
 sys.path.insert(0, str(server_path))
 
 from main import app
+from mock_data import submitted_restock_orders
+
+
+@pytest.fixture(autouse=True)
+def reset_restock_orders():
+    """Clear submitted restocking orders after each test so POST tests stay independent."""
+    yield
+    # Clear in place: main.py holds a reference to this same list object
+    submitted_restock_orders.clear()
 
 
 @pytest.fixture

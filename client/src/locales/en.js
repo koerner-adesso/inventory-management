@@ -6,6 +6,7 @@ export default {
     orders: 'Orders',
     finance: 'Finance',
     demandForecast: 'Demand Forecast',
+    restocking: 'Restocking',
     companyName: 'Catalyst Components',
     subtitle: 'Inventory Management System'
   },
@@ -111,6 +112,7 @@ export default {
     avgOrderValue: 'Avg Order Value',
     onTimeDelivery: 'On-Time Delivery',
     itemsCount: '{count} items',
+    itemsCountOne: '{count} item',
     quantity: 'Qty',
     table: {
       orderNumber: 'Order Number',
@@ -126,6 +128,50 @@ export default {
       status: 'Status',
       expectedDelivery: 'Expected Delivery',
       actualDelivery: 'Actual Delivery'
+    },
+    submitted: {
+      title: 'Submitted Orders',
+      description: 'Restocking orders placed with suppliers',
+      empty: 'No restocking orders submitted yet',
+      leadTime: 'Lead Time',
+      leadTimeDays: '{days} days',
+      submittedDate: 'Submitted',
+      suppliers: 'Suppliers'
+    }
+  },
+
+  // Restocking
+  restocking: {
+    title: 'Restocking',
+    description: 'Set a budget and restock items the demand forecast says you will run short of',
+    budget: 'Available Budget',
+    strategy: 'Prioritize by',
+    strategyUrgency: 'Urgency (largest shortfall)',
+    strategyValue: 'Value (shortfall per dollar)',
+    recommended: 'Recommended Items',
+    notAffordable: 'Not Affordable at This Budget',
+    nothingToRestock: 'No items need restocking',
+    nothingAffordable: 'Increase the budget to see recommendations',
+    selectedTotal: 'Order Total',
+    budgetRemaining: 'Budget Remaining',
+    itemsSelected: '{count} of {total} items selected',
+    placeOrder: 'Place Order',
+    placing: 'Placing order...',
+    orderPlaced: 'Order {orderNumber} placed. Expected delivery {date} ({days} days).',
+    orderFailed: 'Failed to place order',
+    loadFailed: 'Failed to load recommendations',
+    table: {
+      select: 'Select',
+      item: 'Item',
+      category: 'Category',
+      supplier: 'Supplier',
+      onHand: 'On Hand',
+      onOrder: 'On Order',
+      forecast: 'Forecast',
+      shortfall: 'Shortfall',
+      unitCost: 'Unit Cost',
+      cost: 'Cost',
+      leadTime: 'Lead Time'
     }
   },
 

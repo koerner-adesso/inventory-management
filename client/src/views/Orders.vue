@@ -51,7 +51,7 @@
                 <td class="col-items">
                   <details class="items-details">
                     <summary class="items-summary">
-                      {{ t('orders.itemsCount', { count: order.items.length }) }}
+                      {{ itemsLabel(order.items.length) }}
                     </summary>
                     <div class="items-dropdown">
                       <div v-for="(item, idx) in order.items" :key="idx" class="item-entry">
@@ -74,6 +74,54 @@
           </table>
         </div>
       </div>
+
+      <div class="card submitted-card">
+        <div class="card-header">
+          <h3 class="card-title">{{ t('orders.submitted.title') }} ({{ submittedOrders.length }})</h3>
+          <p class="card-description">{{ t('orders.submitted.description') }}</p>
+        </div>
+        <div v-if="submittedLoading" class="loading">{{ t('common.loading') }}</div>
+        <div v-else-if="submittedError" class="error">{{ submittedError }}</div>
+        <div v-else-if="submittedOrders.length === 0" class="empty-submitted">{{ t('orders.submitted.empty') }}</div>
+        <div v-else class="table-container">
+          <table class="orders-table">
+            <thead>
+              <tr>
+                <th class="col-order-number">{{ t('orders.table.orderNumber') }}</th>
+                <th class="col-date">{{ t('orders.submitted.submittedDate') }}</th>
+                <th class="col-items">{{ t('orders.table.items') }}</th>
+                <th class="col-customer">{{ t('orders.submitted.suppliers') }}</th>
+                <th class="col-value">{{ t('orders.table.totalValue') }}</th>
+                <th class="col-date">{{ t('orders.submitted.leadTime') }}</th>
+                <th class="col-date">{{ t('orders.table.expectedDelivery') }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="order in submittedOrders" :key="order.id">
+                <td class="col-order-number"><strong>{{ order.order_number }}</strong></td>
+                <td class="col-date">{{ formatDate(order.submitted_date) }}</td>
+                <td class="col-items">
+                  <details class="items-details">
+                    <summary class="items-summary">
+                      {{ itemsLabel(order.items.length) }}
+                    </summary>
+                    <div class="items-dropdown">
+                      <div v-for="item in order.items" :key="item.sku" class="item-entry">
+                        <span class="item-name">{{ item.name }}</span>
+                        <span class="item-meta">{{ t('orders.quantity') }}: {{ item.quantity }} @ {{ formatUnitMoney(item.unit_cost) }}</span>
+                      </div>
+                    </div>
+                  </details>
+                </td>
+                <td class="col-customer">{{ uniqueSuppliers(order).join(', ') }}</td>
+                <td class="col-value"><strong>{{ formatMoney(order.total_cost) }}</strong></td>
+                <td class="col-date">{{ t('orders.submitted.leadTimeDays', { days: order.lead_time_days }) }}</td>
+                <td class="col-date">{{ formatDate(order.expected_delivery) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -83,6 +131,7 @@ import { ref, onMounted, watch, computed } from 'vue'
 import { api } from '../api'
 import { useFilters } from '../composables/useFilters'
 import { useI18n } from '../composables/useI18n'
+import { formatCurrency, formatCurrencyWithDecimals } from '../utils/currency'
 
 export default {
   name: 'Orders',
@@ -95,6 +144,11 @@ export default {
     const loading = ref(true)
     const error = ref(null)
     const orders = ref([])
+
+    // Submitted restocking orders: separate state so filter watchers never reload or hide them
+    const submittedOrders = ref([])
+    const submittedLoading = ref(true)
+    const submittedError = ref(null)
 
     // Use shared filters
     const {
@@ -123,6 +177,26 @@ export default {
         loading.value = false
       }
     }
+
+    const loadSubmittedOrders = async () => {
+      try {
+        submittedLoading.value = true
+        submittedError.value = null
+        submittedOrders.value = await api.getSubmittedOrders()
+      } catch (err) {
+        submittedError.value = 'Failed to load submitted orders: ' + err.message
+      } finally {
+        submittedLoading.value = false
+      }
+    }
+
+    // The i18n helper has no plural support, so pick the singular key explicitly.
+    const itemsLabel = (count) => t(count === 1 ? 'orders.itemsCountOne' : 'orders.itemsCount', { count })
+
+    const uniqueSuppliers = (order) => [...new Set(order.items.map(i => i.supplier_name))]
+    const formatMoney = (amount) => formatCurrency(amount, currentCurrency.value)
+    // Unit costs carry cents (e.g. 42.50), so they need decimals unlike order totals.
+    const formatUnitMoney = (amount) => formatCurrencyWithDecimals(amount, currentCurrency.value, 2)
 
     // Watch for filter changes and reload data
     watch([selectedPeriod, selectedLocation, selectedCategory, selectedStatus], () => {
@@ -153,7 +227,10 @@ export default {
       })
     }
 
-    onMounted(loadOrders)
+    onMounted(() => {
+      loadOrders()
+      loadSubmittedOrders()
+    })
 
     return {
       t,
@@ -165,7 +242,14 @@ export default {
       formatDate,
       currencySymbol,
       translateProductName,
-      translateCustomerName
+      translateCustomerName,
+      submittedOrders,
+      submittedLoading,
+      submittedError,
+      uniqueSuppliers,
+      itemsLabel,
+      formatMoney,
+      formatUnitMoney
     }
   }
 }
@@ -180,7 +264,9 @@ export default {
 
 /* Column widths */
 .col-order-number {
-  width: 130px;
+  /* Wide enough for restocking numbers like RST-2026-0001 without wrapping */
+  width: 150px;
+  white-space: nowrap;
 }
 
 .col-customer {
@@ -274,6 +360,22 @@ export default {
 
 .item-meta {
   font-size: 0.813rem;
+  color: #64748b;
+}
+
+.submitted-card {
+  margin-top: 1.5rem;
+}
+
+.card-description {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.empty-submitted {
+  padding: 2rem;
+  text-align: center;
   color: #64748b;
 }
 </style>
