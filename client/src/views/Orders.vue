@@ -51,7 +51,7 @@
                 <td class="col-items">
                   <details class="items-details">
                     <summary class="items-summary">
-                      {{ t('orders.itemsCount', { count: order.items.length }) }}
+                      {{ itemsLabel(order.items.length) }}
                     </summary>
                     <div class="items-dropdown">
                       <div v-for="(item, idx) in order.items" :key="idx" class="item-entry">
@@ -103,12 +103,12 @@
                 <td class="col-items">
                   <details class="items-details">
                     <summary class="items-summary">
-                      {{ t('orders.itemsCount', { count: order.items.length }) }}
+                      {{ itemsLabel(order.items.length) }}
                     </summary>
                     <div class="items-dropdown">
                       <div v-for="item in order.items" :key="item.sku" class="item-entry">
                         <span class="item-name">{{ item.name }}</span>
-                        <span class="item-meta">{{ t('orders.quantity') }}: {{ item.quantity }} @ {{ formatMoney(item.unit_cost) }}</span>
+                        <span class="item-meta">{{ t('orders.quantity') }}: {{ item.quantity }} @ {{ formatUnitMoney(item.unit_cost) }}</span>
                       </div>
                     </div>
                   </details>
@@ -131,7 +131,7 @@ import { ref, onMounted, watch, computed } from 'vue'
 import { api } from '../api'
 import { useFilters } from '../composables/useFilters'
 import { useI18n } from '../composables/useI18n'
-import { formatCurrency } from '../utils/currency'
+import { formatCurrency, formatCurrencyWithDecimals } from '../utils/currency'
 
 export default {
   name: 'Orders',
@@ -190,8 +190,13 @@ export default {
       }
     }
 
+    // The i18n helper has no plural support, so pick the singular key explicitly.
+    const itemsLabel = (count) => t(count === 1 ? 'orders.itemsCountOne' : 'orders.itemsCount', { count })
+
     const uniqueSuppliers = (order) => [...new Set(order.items.map(i => i.supplier_name))]
     const formatMoney = (amount) => formatCurrency(amount, currentCurrency.value)
+    // Unit costs carry cents (e.g. 42.50), so they need decimals unlike order totals.
+    const formatUnitMoney = (amount) => formatCurrencyWithDecimals(amount, currentCurrency.value, 2)
 
     // Watch for filter changes and reload data
     watch([selectedPeriod, selectedLocation, selectedCategory, selectedStatus], () => {
@@ -242,7 +247,9 @@ export default {
       submittedLoading,
       submittedError,
       uniqueSuppliers,
-      formatMoney
+      itemsLabel,
+      formatMoney,
+      formatUnitMoney
     }
   }
 }
@@ -257,7 +264,9 @@ export default {
 
 /* Column widths */
 .col-order-number {
-  width: 130px;
+  /* Wide enough for restocking numbers like RST-2026-0001 without wrapping */
+  width: 150px;
+  white-space: nowrap;
 }
 
 .col-customer {

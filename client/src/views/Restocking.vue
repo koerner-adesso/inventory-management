@@ -120,7 +120,7 @@
                   <span v-if="trendClass(item.trend)" :class="['badge', item.trend]">{{ t(`trends.${item.trend}`) }}</span>
                 </td>
                 <td class="num"><strong>{{ item.shortfall }}</strong></td>
-                <td class="num">{{ money(item.unit_cost) }}</td>
+                <td class="num">{{ unitMoney(item.unit_cost) }}</td>
                 <td class="num"><strong>{{ money(item.total_cost) }}</strong></td>
                 <td><span class="badge info">{{ t('orders.submitted.leadTimeDays', { days: item.lead_time_days }) }}</span></td>
               </tr>
@@ -155,7 +155,7 @@
                 <td>{{ item.category }}</td>
                 <td>{{ item.supplier_name }}</td>
                 <td class="num">{{ item.shortfall }}</td>
-                <td class="num">{{ money(item.unit_cost) }}</td>
+                <td class="num">{{ unitMoney(item.unit_cost) }}</td>
                 <td class="num">{{ money(item.total_cost) }}</td>
                 <td>{{ t('orders.submitted.leadTimeDays', { days: item.lead_time_days }) }}</td>
               </tr>
@@ -171,7 +171,7 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { api } from '../api'
 import { useI18n } from '../composables/useI18n'
-import { formatCurrency } from '../utils/currency'
+import { formatCurrency, formatCurrencyWithDecimals } from '../utils/currency'
 
 const DEBOUNCE_MS = 250
 
@@ -199,15 +199,26 @@ export default {
       { value: 'value', label: 'restocking.strategyValue' }
     ]
 
-    // Slider max is rounded up so the full-coverage budget is always reachable.
-    const sliderMax = computed(() => Math.ceil(maxBudget.value))
-    const sliderStep = computed(() => Math.max(1, Math.round(sliderMax.value / 100)))
+    // A native range input only lands on min + n * step, so if max is not a multiple of step the
+    // top of the slider is unreachable (e.g. max 34,688 / step 347 tops out at 34,353, which
+    // always leaves the last item unaffordable). Pick the step first, then round max up to a
+    // multiple of it. The slider may overshoot the true full-coverage cost by under one step,
+    // which is harmless: any budget >= max_budget simply covers every shortfall.
+    const sliderStepFor = (max) => Math.max(1, Math.ceil(Math.ceil(max) / 100))
+    const sliderMaxFor = (max) => {
+      const step = sliderStepFor(max)
+      return Math.ceil(Math.ceil(max) / step) * step
+    }
+    const sliderMax = computed(() => sliderMaxFor(maxBudget.value))
+    const sliderStep = computed(() => sliderStepFor(maxBudget.value))
 
     const selectedItems = computed(() => recommended.value.filter(i => selection.value[i.sku]))
     const selectedTotal = computed(() => selectedItems.value.reduce((sum, i) => sum + i.total_cost, 0))
     const budgetRemaining = computed(() => budget.value - selectedTotal.value)
 
     const money = (amount) => formatCurrency(amount, currentCurrency.value)
+    // Unit costs carry cents (e.g. 42.50); whole-dollar rounding would show $43 and misstate the price.
+    const unitMoney = (amount) => formatCurrencyWithDecimals(amount, currentCurrency.value, 2)
     const trendClass = (trend) => ['increasing', 'decreasing', 'stable'].includes(trend)
 
     const formatDate = (dateString) => {
@@ -242,8 +253,8 @@ export default {
         applyResult(data)
         error.value = null
         // Shortfalls shrink after an order is placed; keep the budget inside the new slider range.
-        if (budget.value > Math.ceil(data.max_budget)) {
-          budget.value = Math.ceil(data.max_budget)
+        if (budget.value > sliderMaxFor(data.max_budget)) {
+          budget.value = sliderMaxFor(data.max_budget)
         }
       } catch (err) {
         if (id !== requestId) return
@@ -284,9 +295,8 @@ export default {
         // any items to fit, so we can size the slider before the user touches it.
         const data = await api.getRestockRecommendations(0, strategy.value)
         maxBudget.value = data.max_budget
-        const max = Math.ceil(data.max_budget)
-        const step = Math.max(1, Math.round(max / 100))
-        const half = Math.round(max / 2 / step) * step
+        const step = sliderStepFor(data.max_budget)
+        const half = Math.round(sliderMaxFor(data.max_budget) / 2 / step) * step
         if (half > 0) {
           budget.value = half
           await loadRecommendations()
@@ -355,6 +365,7 @@ export default {
       selectedTotal,
       budgetRemaining,
       money,
+      unitMoney,
       trendClass,
       placeOrder
     }

@@ -112,6 +112,7 @@ export default {
     avgOrderValue: 'Avg Order Value',
     onTimeDelivery: 'On-Time Delivery',
     itemsCount: '{count} items',
+    itemsCountOne: '{count} item',
     quantity: 'Qty',
     table: {
       orderNumber: 'Order Number',

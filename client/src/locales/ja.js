@@ -112,6 +112,7 @@ export default {
     avgOrderValue: '平均注文額',
     onTimeDelivery: '定時配達',
     itemsCount: '{count}件',
+    itemsCountOne: '{count}件',
     quantity: '数量',
     table: {
       orderNumber: '注文番号',
